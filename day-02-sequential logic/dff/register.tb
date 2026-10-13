@@ -1,0 +1,49 @@
+module tb_register;
+  logic clk,reset;
+  logic [3:0]d,q;
+  register dut(
+    .clk(clk), .reset(reset), .d(d), .q(q) 
+  );
+
+  initial begin
+    clk=0;
+    forever #5 clk = ~clk;
+  end
+
+  initial begin
+    reset = 1;
+    d=4'b1010;
+    @(posedge clk)
+    #1;
+    if(q!= 4'b0000)
+      $error("FAIL : Reset test, q = %b",q);
+    else
+      $display("PASS : Reset test");
+
+    reset = 0;
+    d=4'b1010;
+     @(posedge clk)
+    #1;
+    if(q!= 4'b1010)
+      $error("FAIL : Capture 1010, q = %b",q);
+    else
+      $display("PASS : Capture 1010");
+
+    d=4'b1001;
+    #1;
+    if(q!= 4'b1010)
+      $error("FAIL : q changed without clock, q = %b",q);
+    else
+      $display("PASS : Holds values between edges");
+      
+     @(posedge clk)
+    #1;
+    if(q!= 4'b1001)
+      $error("FAIL : Capture 1001, q = %b",q);
+    else
+      $display("PASS : Capture 1001");
+    
+    $display("Register tests completed");
+    $finish;
+  end
+endmodule
