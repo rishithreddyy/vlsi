@@ -6,7 +6,7 @@ module register(
 );
 always_ff @(posedge clk) begin 
 if(reset)
-q = 4'b0000;
+q <= 4'b0000;
 else
 q<=d;
 end 

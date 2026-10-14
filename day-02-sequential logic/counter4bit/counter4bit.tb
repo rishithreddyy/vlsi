@@ -1,0 +1,84 @@
+module tb_counter4bit;
+  logic clk;
+  logic reset;
+  logic enable;
+  logic [3:0]count;
+  counter4bit dut(
+    .clk(clk),.reset(reset),.enable(enable),.count(count)
+  );
+  initial begin
+    $dumpfile("dump.vcd");
+    $dumpvars(0, tb_counter_4bit);
+end
+    //clock period
+    initial begin
+      clk=0;
+      forever #5 clk = ~clk;
+    end
+    //test 
+    initial begin
+      reset=1;enable=0;
+      //apply reset at a rising edge
+      @(posedge clk);
+      #1;
+      if(count !== 4'd0)
+        $fatal(1,"FAIL:reset, count=%0d",count);
+      else
+        $display("PASS:reset");
+      //release reset and enable counting
+      reset=0;
+      enable=1;
+      @(posedge clk);
+      #1;
+      if(count !== 4'd1)
+        $fatal(1,"FAIL:first increment, count=%0d",count);
+      else
+        $display("PASS:1st increment");
+       @(posedge clk);
+      #1;
+      if(count !== 4'd2)
+        $fatal(1,"FAIL:second increment, count=%0d",count);
+      else
+        $display("PASS:2nd increment");  
+  //disable counter 
+      enable=0;
+       @(posedge clk);
+      #1;
+      if(count !== 4'd2)
+        $fatal(1,"FAIL:hold, count=%0d",count);
+      else
+        $display("PASS:hold");
+      //resume counting
+      enable=1;
+       @(posedge clk);
+      #1;
+      if(count !== 4'd3)
+        $fatal(1,"FAIL:resume, count=%0d",count);
+      else
+        $display("PASS:resume");
+      //set count to 15 using reset and 15 enabled edges
+      reset=1;
+      enable=0;
+       @(posedge clk);
+      #1;
+      reset=0;
+      enable=1;
+      repeat(15) begin
+         @(posedge clk);
+      #1;
+      end
+        if(count !== 4'd15)
+          $fatal(1,"FAIL:reqding 15, count=%0d",count);
+      else
+        $display("PASS:reading 15");
+        //overflow : 15+1 wraps to 0
+         @(posedge clk);
+      #1;
+        if(count !== 4'd0)
+          $fatal(1,"FAIL:overflow, count=%0d",count);
+      else
+        $display("PASS:overflow wraps to 0");
+$display("All counter tests passed");
+        $finish;
+      end 
+endmodule
