@@ -1,0 +1,83 @@
+module tb_programmable_counter;
+  logic clk;
+  logic reset;
+  logic enable;
+  logic up_down;
+  logic load;
+  logic [3:0]load_value;
+  logic [3:0]count;
+  //device under teset
+  programmable_counter dut(    .clk(clk),.reset(reset),.enable(enable),.up_down(up_down),.load(load),.load_value(load_value),.count(count) );
+  //epwave
+  initial begin
+    $dumpfile("dump.vcd");
+    $dumpvars(0,tb_programmable_counter);
+  end
+  //10 time unit clock period
+  initial begin
+    clk=0;
+    forever #5 clk= ~clk;
+  end
+  //apply inputs away from the rising edge and then check it, this is done so inputs get the time to settle
+  task automatic check(
+    input logic t_reset,t_load,t_enable,t_up_down,
+    input logic [3:0]t_load_value,
+    input logic [3:0]expected, //checks if the value is equal to count
+    input string test_name
+  );
+    @(negedge clk); //waiting for safe time to apply inputs this gives the input time to settle before the next rising edge
+    reset=t_reset;
+    load=t_load;
+    enable=t_enable;
+    up_down=t_up_down;
+    load_value=t_load_value;
+    
+    @(posedge clk);
+    #1;
+    if(count!==expected)
+      $fatal(1,"FAIL:%s | expected=%b, | actual=%b",test_name,expected,count);
+    else
+      $display("PASS:%s | expected=%b, | actual=%b",test_name,expected,count);
+  endtask
+  
+  initial begin
+    reset=0;
+    load=0;
+    enable=0;
+    up_down=0;
+    load_value=4'b0000;
+    //reset
+    check(
+      1,0,0,0,4'd10,4'd0,"Reset" );
+    //load decimal 9
+    check(
+      0,1,0,1,4'd9,4'd9,"Load 9" );
+    //count up 9->10
+    check(
+      0,0,1,1,4'd0,4'd10,"count up" );
+    //count down 10->9
+    check(
+      0,0,1,0,4'd0,4'd9,"count down" );
+    //hold at 9
+    check(
+      0,0,0,1,4'd5,4'd9,"Hold" );
+    //load 15, then coupt up 15->0
+    check(
+      0,1,0,1,4'd15,4'd15,"Load 15" );
+    check(
+      0,0,1,1,4'd10,4'd0,"overflow" );
+    //load 0, then coupt down 0->15
+    check(
+      0,1,0,1,4'd0,4'd0,"Load 0" );
+    check(
+      0,0,1,0,4'd10,4'd15,"underflow" );
+    //load has priority over enable
+    check(
+      0,1,1,1,4'd10,4'd10,"load priority over enable" );
+    //reset has priority over laod and enable
+    check(
+      1,1,1,0,4'd10,4'd0,"reset priority" );
+    $display("All programmable counter conditions passed");
+    $finish;
+  end
+endmodule
