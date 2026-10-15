@@ -1,4 +1,4 @@
-module programmable_counter(
+module programmable_updowncounter(
   input logic clk,reset,enable,up_down,load,
   input logic [3:0]logicvalue,
   output logic [3:0]count 

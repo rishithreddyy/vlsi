@@ -1,4 +1,4 @@
-module tb_programmable_counter;
+module tb_programmable_updowncounter;
   logic clk;
   logic reset;
   logic enable;
@@ -7,11 +7,11 @@ module tb_programmable_counter;
   logic [3:0]load_value;
   logic [3:0]count;
   //device under teset
-  programmable_counter dut(    .clk(clk),.reset(reset),.enable(enable),.up_down(up_down),.load(load),.load_value(load_value),.count(count) );
+  programmable_counter dut(.clk(clk),.reset(reset),.enable(enable),.up_down(up_down),.load(load),.load_value(load_value),.count(count) );
   //epwave
   initial begin
     $dumpfile("dump.vcd");
-    $dumpvars(0,tb_programmable_counter);
+    $dumpvars(0,tb_programmable_updowncounter);
   end
   //10 time unit clock period
   initial begin
