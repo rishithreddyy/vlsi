@@ -1,0 +1,154 @@
+# Day 2 — Sequential Logic and Counters
+
+## Objective
+
+Understand sequential digital circuits, learn how clocked logic works in SystemVerilog, and build and verify a programmable 4-bit up/down counter.
+
+The focus of this day was to move from combinational logic, where outputs depend on current inputs, to sequential logic, where circuits store and update state over time.
+
+## Concepts Covered
+
+### 1. Sequential Logic and Clocking
+
+- Difference between combinational and sequential logic.
+- Role of a clock signal in synchronous digital circuits.
+- Rising-edge-triggered operation using `posedge clk`.
+- State retention between active clock edges.
+- Synchronous active-high reset.
+
+### 2. D Flip-Flop and Registers
+
+- Working principle of a D flip-flop.
+- Capturing input data at the rising edge of a clock.
+- Implementing a 4-bit register in SystemVerilog.
+- Using `always_ff` for sequential logic.
+- Using non-blocking assignments (`<=`) for clocked state updates.
+- Understanding the difference between changing an input and updating a stored output.
+
+### 3. Counters
+
+- Implementing a 4-bit binary up counter.
+- Adding an enable signal to control counting.
+- Holding the current state when enable is low.
+- Understanding 4-bit overflow and modulo-16 counting.
+- Writing self-checking testbenches to verify sequential behavior.
+
+### 4. Programmable 4-Bit Up/Down Counter
+
+The final project combines reset, data loading, enable control, and directional counting into one sequential circuit.
+
+**Inputs**
+
+| Signal | Width | Description |
+|---|---:|---|
+| `clk` | 1 bit | Clock input |
+| `reset` | 1 bit | Synchronous active-high reset |
+| `load` | 1 bit | Loads a specified value |
+| `enable` | 1 bit | Enables counting |
+| `up_down` | 1 bit | Selects count direction |
+| `load_value` | 4 bits | Value to load into the counter |
+
+**Output**
+
+| Signal | Width | Description |
+|---|---:|---|
+| `count` | 4 bits | Current counter state |
+
+## Functional Specification
+
+The counter updates its state on the rising edge of the clock.
+
+| Priority | Condition | Operation |
+|---:|---|---|
+| 1 | `reset = 1` | Clear count to `0000` |
+| 2 | `load = 1` | Load `load_value` |
+| 3 | `enable = 1`, `up_down = 1` | Increment count |
+| 3 | `enable = 1`, `up_down = 0` | Decrement count |
+| 4 | Otherwise | Hold the current count |
+
+Reset has the highest priority, followed by load, enable, and hold.
+
+### Wraparound Behavior
+
+Since the counter is 4 bits wide, it represents values from 0 to 15.
+
+- Incrementing 15 produces 0.
+- Decrementing 0 produces 15.
+
+This is modulo-16 arithmetic.
+
+## Verification Strategy
+
+A self-checking SystemVerilog testbench was developed to verify the counter's behavior automatically.
+
+The testbench applies inputs, waits for the active clock edge, and compares the actual output against the expected result. It reports a `PASS` message for a successful test and terminates simulation with `$fatal` if an assertion-style check fails.
+
+### Test Cases
+
+1. Reset clears the counter.
+2. Load a specified value.
+3. Increment the counter.
+4. Decrement the counter.
+5. Hold the count when controls are inactive.
+6. Verify increment wraparound from 15 to 0.
+7. Verify decrement wraparound from 0 to 15.
+8. Verify that load takes priority over enable.
+9. Verify that reset takes priority over load and enable.
+
+## Project Structure
+
+```text
+day-02-sequential-logic/
+├── README.md
+├── d-flip-flop/
+│   ├── d_flip_flop.sv
+│   └── tb_d_flip_flop.sv
+├── register/
+│   ├── register_4bit.sv
+│   └── tb_register_4bit.sv
+├── counter/
+│   ├── counter_4bit.sv
+│   └── tb_counter_4bit.sv
+└── programmable-counter/
+    ├── programmable_counter.sv
+    ├── tb_programmable_counter.sv
+└── README.md
+```
+
+*Note: This is the intended structure. Keep only the folders and files that you actually created.*
+
+## Simulation
+
+The projects can be simulated using a SystemVerilog-compatible simulator, such as Icarus Verilog with SystemVerilog support.
+
+From the `programmable-counter` directory, run:
+
+```bash
+iverilog -g2012 -s tb_programmable_counter -o counter_sim programmable_counter.sv tb_programmable_counter.sv
+vvp counter_sim
+```
+
+The testbench should print `PASS` messages for the specified test cases if the implementation is correct.
+
+The generated `counter_sim` executable is a simulation artifact and should not be committed to GitHub.
+
+## Key Learnings
+
+- Sequential circuits store state and update it in response to clock events.
+- A D flip-flop captures data at the active clock edge.
+- Registers store multi-bit values.
+- Counters are sequential circuits that update their state according to defined rules.
+- Non-blocking assignments are appropriate for ordinary clocked state updates.
+- Control-signal priority must be implemented and verified deliberately.
+- Self-checking testbenches make functional verification repeatable.
+- Boundary conditions such as overflow and underflow are essential verification cases.
+
+## Completion Criteria
+
+-  Understand D flip-flops and clocked registers.
+-  Implement a 4-bit counter with reset and enable.
+-  Implement the programmable up/down counter.
+-  Pass all planned testbench checks.
+-  Inspect the simulation waveform.
+-  Document any bugs discovered and how they were fixed.
+-  Commit the source code, testbenches, and documentation to GitHub.
